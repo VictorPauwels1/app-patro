@@ -15,8 +15,8 @@ export default function AboutSection() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-              <Heart className="w-8 h-8 text-blue-600" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+              <Heart className="w-8 h-8 text-green-600" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
               Des valeurs fortes
@@ -27,8 +27,8 @@ export default function AboutSection() {
           </div>
 
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-              <Users className="w-8 h-8 text-green-600" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-4">
+              <Users className="w-8 h-8 text-yellow-600" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
               Une equipe passionnee
@@ -39,8 +39,8 @@ export default function AboutSection() {
           </div>
 
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
-              <Sparkles className="w-8 h-8 text-purple-600" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+              <Sparkles className="w-8 h-8 text-green-600" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
               Des activites variees

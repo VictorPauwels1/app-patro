@@ -16,8 +16,10 @@ datasource db {
 
 enum Role {
   ADMIN
-  ANIMATEUR_GARCONS
+  PRESIDENT_FILLES
+  PRESIDENT_GARCONS
   ANIMATEUR_FILLES
+  ANIMATEUR_GARCONS
 }
 
 enum PatroGroup {
@@ -341,4 +343,55 @@ model Newsletter {
   
   @@unique([type, year, edition]) // Pas de doublon
   @@map("newsletters")
+}
+
+// ============================================
+// Paramètres généraux du site
+// ============================================
+
+  model Settings {
+    id                  String      @id @default(cuid())
+    section             PatroGroup  // GARCONS ou FILLES
+    
+    // Prix
+    prixInscription     Float       @default(45)
+    
+    // Infos de contact
+    emailContact        String      @default("contact@patro.be")
+    adresse             String      @default("Rue du Patro 123, 7850 Enghien")
+    horaires            String      @default("Dimanches 14h00 - 17h00")
+
+    // Coordonnées bancaires
+    iban                String      @default("BE56 7755 9576 1388")
+    bic                 String      @default("GKCCBEBB")
+    beneficiaire        String      @default("PATRO ST NICOLAS GARCONS ENGHIEN")
+    
+    createdAt           DateTime    @default(now())
+    updatedAt           DateTime    @updatedAt
+    
+    @@unique([section])
+  }
+
+// Fiches des animateurs
+model Animateur {
+  id                  String      @id @default(cuid())
+  nom                 String
+  prenom              String
+  telephone           String
+  email               String?
+  section             PatroGroup
+  fonction            FonctionAnimateur @default(ANIMATEUR)
+  afficherContact     Boolean     @default(false)
+  
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  
+  @@index([section])
+}
+
+enum FonctionAnimateur {
+  ANIMATEUR
+  PRESIDENT
+  VICE_PRESIDENT
+  CO_PRESIDENT
 }

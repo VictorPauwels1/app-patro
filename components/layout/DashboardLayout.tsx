@@ -67,7 +67,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
           </div>
 
           {/* Navigation */}
-          <DashboardNav />
+          <DashboardNav user={user} />
         </aside>
 
         {/* Sidebar Mobile */}
@@ -103,7 +103,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
 
               {/* Navigation */}
               <div onClick={() => setIsMobileMenuOpen(false)}>
-                <DashboardNav />
+                <DashboardNav user={user} />
               </div>
             </aside>
           </div>

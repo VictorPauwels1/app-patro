@@ -6,10 +6,16 @@ import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import Alert from '@/components/ui/Alert'
 import { InscriptionFormData } from '@/lib/validations'
-import { AlertCircle, User, MapPin, Mail, Heart, FileText, Euro } from 'lucide-react'
+import { AlertCircle, User, MapPin, Mail, Heart } from 'lucide-react'
 import QRCodePayment from '@/components/QRCodePayment'
+import { Settings } from '@prisma/client'
 
-export default function InscriptionForm() {
+interface InscriptionFormClientProps {
+  settingsGarcons: Settings | null
+  settingsFilles: Settings | null
+}
+
+export default function InscriptionFormClient({ settingsGarcons, settingsFilles }: InscriptionFormClientProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -29,6 +35,23 @@ export default function InscriptionForm() {
     medicationAutonomous: false,
     emergencyMedicalConsent: false,
   })
+
+  // Paramètres dynamiques selon la section choisie
+  const prixInscription = formData.patroGroup === 'FILLES' 
+    ? (settingsFilles?.prixInscription || 45)
+    : (settingsGarcons?.prixInscription || 45)
+  
+  const iban = formData.patroGroup === 'FILLES'
+    ? (settingsFilles?.iban || 'BE02 7995 2721 8240')
+    : (settingsGarcons?.iban || 'BE56 7755 9576 1388')
+  
+  const bic = formData.patroGroup === 'FILLES'
+    ? (settingsFilles?.bic || 'GEBABEBB')
+    : (settingsGarcons?.bic || 'GKCCBEBB')
+  
+  const beneficiaire = formData.patroGroup === 'FILLES'
+    ? (settingsFilles?.beneficiaire || 'PATRONAGE ST.NICOLAS ENGHIEN FILLES')
+    : (settingsGarcons?.beneficiaire || 'PATRO ST NICOLAS GARCONS ENGHIEN')
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
@@ -83,8 +106,8 @@ export default function InscriptionForm() {
             <p>Merci ! L'inscription a bien ete enregistree.</p>
             <div className="bg-green-100 border border-green-200 rounded p-4 mt-4">
               <p className="font-semibold mb-2">Pour finaliser l'inscription :</p>
-              <p className="text-sm">Merci de payer la cotisation de <strong>45€</strong> sur le compte</p>
-              <p className="text-sm font-mono bg-white px-2 py-1 rounded mt-1">BE56 7755 9576 1388</p>
+              <p className="text-sm">Merci de payer la cotisation de <strong>{prixInscription}€</strong> sur le compte</p>
+              <p className="text-sm font-mono bg-white px-2 py-1 rounded mt-1">{iban}</p>
               <p className="text-sm mt-2">
                 Communication : <strong>{formData.childLastName} {formData.childFirstName}</strong>
               </p>
@@ -439,6 +462,7 @@ export default function InscriptionForm() {
           </div>
         </div>
       </div>
+
       {/* ============================================ */}
       {/* SECTION 6 : FICHE MEDICALE */}
       {/* ============================================ */}
@@ -812,6 +836,7 @@ export default function InscriptionForm() {
           </div>
         </div>
       </div>
+
       {/* ============================================ */}
       {/* SECTION 7 : AUTORISATION MEDICALE D'URGENCE */}
       {/* ============================================ */}
@@ -862,10 +887,13 @@ export default function InscriptionForm() {
       {/* SECTION 8 : PAIEMENT AVEC QR CODE */}
       {/* ============================================ */}
       <QRCodePayment
-        montant={45}
+        montant={prixInscription}
         reference={`${formData.childLastName || '[NOM]'} ${formData.childFirstName || '[Prenom]'} ${formData.patroGroup ? `(${formData.patroGroup === 'GARCONS' ? 'Garcons' : 'Filles'})` : '([Section])'}`}
         message="Inscription annuelle"
         showAccountInfo={true}
+        iban={iban}
+        bic={bic}
+        beneficiaire={beneficiaire}
       />
 
       {/* ============================================ */}

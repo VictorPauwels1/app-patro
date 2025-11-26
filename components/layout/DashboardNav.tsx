@@ -12,7 +12,8 @@ import {
   MessageSquare, 
   Newspaper,
   LogOut,
-  Home
+  Home,
+  Settings
 } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 
@@ -20,6 +21,13 @@ interface NavItem {
   label: string
   href: string
   icon: React.ComponentType<{ className?: string }>
+  roles?: string[] // ← Optionnel maintenant
+}
+
+interface DashboardNavProps {
+  user: {
+    role: string
+  }
 }
 
 const navItems: NavItem[] = [
@@ -30,9 +38,15 @@ const navItems: NavItem[] = [
   { label: 'Albums photos', href: '/dashboard/albums', icon: Images },
   { label: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
   { label: 'Journaux', href: '/dashboard/journaux', icon: Newspaper },
+  {
+    label: 'Paramètres',
+    href: '/dashboard/parametres',
+    icon: Settings,
+    roles: ['ADMIN', 'PRESIDENT_FILLES', 'PRESIDENT_GARCONS'],
+  },
 ]
 
-export default function DashboardNav() {
+export default function DashboardNav({ user }: DashboardNavProps) {
   const pathname = usePathname()
 
   const handleLogout = async () => {
@@ -55,27 +69,29 @@ export default function DashboardNav() {
       {/* Navigation principale */}
       <div className="flex-1 py-4">
         <ul className="space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon
-            const isActive = pathname === item.href
+          {navItems
+            .filter((item) => !item.roles || item.roles.includes(user.role))
+            .map((item) => {
+              const Icon = item.icon
+              const isActive = pathname === item.href
 
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={cn(
-                    'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors',
-                    isActive
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  )}
-                >
-                  <Icon className="w-5 h-5" />
-                  {item.label}
-                </Link>
-              </li>
-            )
-          })}
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors',
+                      isActive
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    )}
+                  >
+                    <Icon className="w-5 h-5" />
+                    {item.label}
+                  </Link>
+                </li>
+              )
+            })}
         </ul>
       </div>
 

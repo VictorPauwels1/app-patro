@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "Role" AS ENUM ('ADMIN', 'ANIMATEUR_GARCONS', 'ANIMATEUR_FILLES');
+CREATE TYPE "Role" AS ENUM ('ADMIN', 'PRESIDENT_FILLES', 'PRESIDENT_GARCONS', 'ANIMATEUR_FILLES', 'ANIMATEUR_GARCONS');
 
 -- CreateEnum
 CREATE TYPE "PatroGroup" AS ENUM ('GARCONS', 'FILLES');
@@ -9,6 +9,9 @@ CREATE TYPE "Section" AS ENUM ('POUSSINS_G', 'BENJAMINS', 'CHEVALIERS', 'CONQUER
 
 -- CreateEnum
 CREATE TYPE "NewsletterType" AS ENUM ('POLICHINELLE', 'GAZETTE');
+
+-- CreateEnum
+CREATE TYPE "FonctionAnimateur" AS ENUM ('ANIMATEUR', 'VICE_PRESIDENT', 'CO_PRESIDENT');
 
 -- CreateTable
 CREATE TABLE "users" (
@@ -183,6 +186,37 @@ CREATE TABLE "newsletters" (
     CONSTRAINT "newsletters_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Settings" (
+    "id" TEXT NOT NULL,
+    "section" "PatroGroup" NOT NULL,
+    "prixInscription" DOUBLE PRECISION NOT NULL DEFAULT 45,
+    "emailContact" TEXT NOT NULL DEFAULT 'contact@patro.be',
+    "adresse" TEXT NOT NULL DEFAULT 'Rue du Patro 123, 7850 Enghien',
+    "horaires" TEXT NOT NULL DEFAULT 'Dimanches 14h00 - 17h00',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Settings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Animateur" (
+    "id" TEXT NOT NULL,
+    "nom" TEXT NOT NULL,
+    "prenom" TEXT NOT NULL,
+    "telephone" TEXT NOT NULL,
+    "email" TEXT,
+    "section" "PatroGroup" NOT NULL,
+    "fonction" "FonctionAnimateur" NOT NULL DEFAULT 'ANIMATEUR',
+    "afficherContact" BOOLEAN NOT NULL DEFAULT false,
+    "isPresident" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Animateur_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
@@ -197,6 +231,12 @@ CREATE UNIQUE INDEX "camp_registrations_campId_childId_key" ON "camp_registratio
 
 -- CreateIndex
 CREATE UNIQUE INDEX "newsletters_type_year_edition_key" ON "newsletters"("type", "year", "edition");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Settings_section_key" ON "Settings"("section");
+
+-- CreateIndex
+CREATE INDEX "Animateur_section_idx" ON "Animateur"("section");
 
 -- AddForeignKey
 ALTER TABLE "children" ADD CONSTRAINT "children_primaryParentId_fkey" FOREIGN KEY ("primaryParentId") REFERENCES "parents"("id") ON DELETE CASCADE ON UPDATE CASCADE;
