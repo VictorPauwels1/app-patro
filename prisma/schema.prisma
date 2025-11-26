@@ -72,27 +72,30 @@ model User {
 }
 
 // ============================================
-// PARENTS ET ENFANTS
+// RESPONSABLES (PARENTS/TUTEURS)
 // ============================================
 
 model Parent {
   id            String   @id @default(cuid())
   firstName     String
   lastName      String
+  relationship  String   // "Père", "Mère", "Autre: ..."
   email         String
-  phone         String
-  address       String
-  city          String?
-  postalCode    String?
+  phone         String   @unique // Telephone normalise (identifiant unique)
   
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   
   // Relations
-  children      Child[]
+  childrenAsPrimary   Child[] @relation("PrimaryParent")
+  childrenAsSecondary Child[] @relation("SecondaryParent")
   
   @@map("parents")
 }
+
+// ============================================
+// ENFANTS
+// ============================================
 
 model Child {
   id            String      @id @default(cuid())
@@ -100,11 +103,22 @@ model Child {
   lastName      String
   birthDate     DateTime
   patroGroup    PatroGroup  // GARCONS ou FILLES
-  section       Section?    // Section assignée
+  section       Section?    // Section assignée automatiquement
   
-  // Relation parent
-  parentId      String
-  parent        Parent      @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  // Adresse (commune aux 2 parents)
+  address       String
+  city          String
+  postalCode    String
+  
+  // Email secondaire (facultatif)
+  secondaryEmail String?
+  
+  // Relations avec les 2 responsables
+  primaryParentId   String
+  primaryParent     Parent  @relation("PrimaryParent", fields: [primaryParentId], references: [id], onDelete: Cascade)
+  
+  secondaryParentId String
+  secondaryParent   Parent  @relation("SecondaryParent", fields: [secondaryParentId], references: [id], onDelete: Cascade)
   
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
@@ -130,24 +144,31 @@ model Registration {
   // Année scolaire (ex: "2024-2025")
   year          String
   
-  // Fiche médicale (JSON pour flexibilité)
-  medicalInfo   Json?    // { allergies, treatments, doctor, emergencyContacts, etc. }
+  // Fiche médicale complète (JSON)
+  medicalInfo   Json?    // Structure détaillée ci-dessous
   
-  // Autorisations
-  photoConsent       Boolean @default(false)
-  leaveAloneConsent  Boolean @default(false)
+  // Poids (pour certaines activités)
+  weight        Float?
   
-  // Remarques
+  // Droits à l'image
+  photoConsent  String   // "full", "background", "none"
+  photoUsage    Boolean  @default(false) // Utilisation dans communications
+  photoArchive  Boolean  @default(false) // Utilisation pour archives
+  
+  // Autorisation médicale d'urgence
+  emergencyMedicalConsent Boolean @default(false)
+  
+  // Remarques générales
   remarks       String?
   
-  // Statut
+  // Statut paiement
   isPaid        Boolean @default(false)
-  amount        Float?  // Cotisation annuelle
+  amount        Float   @default(45) // Cotisation annuelle
   
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   
-  @@unique([childId, year]) // Un enfant ne peut avoir qu'une inscription par année
+  @@unique([childId, year])
   @@map("registrations")
 }
 

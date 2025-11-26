@@ -11,7 +11,8 @@ import {
   Images, 
   MessageSquare, 
   Newspaper,
-  LogOut
+  LogOut,
+  Home
 } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 
@@ -25,7 +26,7 @@ const navItems: NavItem[] = [
   { label: 'Tableau de bord', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Enfants inscrits', href: '/dashboard/enfants', icon: Users },
   { label: 'Camps', href: '/dashboard/camps', icon: Tent },
-  { label: 'Événements', href: '/dashboard/evenements', icon: Calendar },
+  { label: 'Evenements', href: '/dashboard/evenements', icon: Calendar },
   { label: 'Albums photos', href: '/dashboard/albums', icon: Images },
   { label: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
   { label: 'Journaux', href: '/dashboard/journaux', icon: Newspaper },
@@ -40,6 +41,17 @@ export default function DashboardNav() {
 
   return (
     <nav className="flex flex-col h-full">
+      {/* Lien retour accueil en haut */}
+      <div className="px-4 py-4 border-b">
+        <Link
+          href="/"
+          className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <Home className="w-5 h-5" />
+          Retour a l'accueil
+        </Link>
+      </div>
+
       {/* Navigation principale */}
       <div className="flex-1 py-4">
         <ul className="space-y-1">
@@ -67,14 +79,14 @@ export default function DashboardNav() {
         </ul>
       </div>
 
-      {/* Bouton déconnexion */}
+      {/* Bouton deconnexion */}
       <div className="border-t p-4">
         <button
           onClick={handleLogout}
           className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
         >
           <LogOut className="w-5 h-5" />
-          Se déconnecter
+          Se deconnecter
         </button>
       </div>
     </nav>

@@ -29,11 +29,9 @@ CREATE TABLE "parents" (
     "id" TEXT NOT NULL,
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
+    "relationship" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
-    "address" TEXT NOT NULL,
-    "city" TEXT,
-    "postalCode" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -48,7 +46,12 @@ CREATE TABLE "children" (
     "birthDate" TIMESTAMP(3) NOT NULL,
     "patroGroup" "PatroGroup" NOT NULL,
     "section" "Section",
-    "parentId" TEXT NOT NULL,
+    "address" TEXT NOT NULL,
+    "city" TEXT NOT NULL,
+    "postalCode" TEXT NOT NULL,
+    "secondaryEmail" TEXT,
+    "primaryParentId" TEXT NOT NULL,
+    "secondaryParentId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -61,11 +64,14 @@ CREATE TABLE "registrations" (
     "childId" TEXT NOT NULL,
     "year" TEXT NOT NULL,
     "medicalInfo" JSONB,
-    "photoConsent" BOOLEAN NOT NULL DEFAULT false,
-    "leaveAloneConsent" BOOLEAN NOT NULL DEFAULT false,
+    "weight" DOUBLE PRECISION,
+    "photoConsent" TEXT NOT NULL,
+    "photoUsage" BOOLEAN NOT NULL DEFAULT false,
+    "photoArchive" BOOLEAN NOT NULL DEFAULT false,
+    "emergencyMedicalConsent" BOOLEAN NOT NULL DEFAULT false,
     "remarks" TEXT,
     "isPaid" BOOLEAN NOT NULL DEFAULT false,
-    "amount" DOUBLE PRECISION,
+    "amount" DOUBLE PRECISION NOT NULL DEFAULT 45,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -181,6 +187,9 @@ CREATE TABLE "newsletters" (
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "parents_phone_key" ON "parents"("phone");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "registrations_childId_year_key" ON "registrations"("childId", "year");
 
 -- CreateIndex
@@ -190,7 +199,10 @@ CREATE UNIQUE INDEX "camp_registrations_campId_childId_key" ON "camp_registratio
 CREATE UNIQUE INDEX "newsletters_type_year_edition_key" ON "newsletters"("type", "year", "edition");
 
 -- AddForeignKey
-ALTER TABLE "children" ADD CONSTRAINT "children_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "parents"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "children" ADD CONSTRAINT "children_primaryParentId_fkey" FOREIGN KEY ("primaryParentId") REFERENCES "parents"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "children" ADD CONSTRAINT "children_secondaryParentId_fkey" FOREIGN KEY ("secondaryParentId") REFERENCES "parents"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "registrations" ADD CONSTRAINT "registrations_childId_fkey" FOREIGN KEY ("childId") REFERENCES "children"("id") ON DELETE CASCADE ON UPDATE CASCADE;
