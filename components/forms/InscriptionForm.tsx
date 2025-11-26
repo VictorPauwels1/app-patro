@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button'
 import Alert from '@/components/ui/Alert'
 import { InscriptionFormData } from '@/lib/validations'
 import { AlertCircle, User, MapPin, Mail, Heart, FileText, Euro } from 'lucide-react'
+import QRCodePayment from '@/components/QRCodePayment'
 
 export default function InscriptionForm() {
   const router = useRouter()
@@ -858,41 +859,14 @@ export default function InscriptionForm() {
       </div>
 
       {/* ============================================ */}
-      {/* SECTION 8 : PAIEMENT */}
+      {/* SECTION 8 : PAIEMENT AVEC QR CODE */}
       {/* ============================================ */}
-      <div className="bg-gradient-to-br from-green-50 to-blue-50 border-2 border-green-300 rounded-lg shadow-md p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <Euro className="w-6 h-6 text-green-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            Paiement
-          </h2>
-        </div>
-        
-        <div className="bg-white rounded-lg p-4 space-y-3">
-          <p className="text-gray-700">
-            Pour confirmer votre inscription, merci de bien vouloir payer la cotisation de <strong className="text-green-600 text-lg">45€</strong> sur le compte :
-          </p>
-          
-          <div className="bg-gray-100 border-2 border-gray-300 rounded-lg p-4 text-center">
-            <p className="text-sm text-gray-600 mb-1">Numero de compte IBAN :</p>
-            <p className="text-xl font-mono font-bold text-gray-900">
-              BE56 7755 9576 1388
-            </p>
-          </div>
-          
-          <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3">
-            <p className="text-sm text-gray-700">
-              <strong>Communication :</strong> {formData.childLastName || '[NOM]'} {formData.childFirstName || '[Prenom]'} {formData.patroGroup ? `(${formData.patroGroup === 'GARCONS' ? 'Garcons' : 'Filles'})` : '([Section])'}
-            </p>
-          </div>
-          
-          <p className="text-xs text-gray-600 text-center">
-            L'inscription ne sera validee qu'apres reception du paiement
-          </p>
-        </div>
-      </div>
+      <QRCodePayment
+        montant={45}
+        reference={`${formData.childLastName || '[NOM]'} ${formData.childFirstName || '[Prenom]'} ${formData.patroGroup ? `(${formData.patroGroup === 'GARCONS' ? 'Garcons' : 'Filles'})` : '([Section])'}`}
+        message="Inscription annuelle"
+        showAccountInfo={true}
+      />
 
       {/* ============================================ */}
       {/* BOUTON DE SOUMISSION */}

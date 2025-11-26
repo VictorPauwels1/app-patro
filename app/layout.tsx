@@ -16,9 +16,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Patro - Mouvement de Jeunesse",
-  description: "Site officiel du Patro - Inscriptions, camps, événements et actualités",
-};
+  title: 'Patro Enghien',
+  description: 'Patro Saint-Nicolas d\'Enghien',
+  
+}
 
 export default async function RootLayout({
   children,
