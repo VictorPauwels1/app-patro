@@ -11,7 +11,7 @@ CREATE TYPE "Section" AS ENUM ('POUSSINS_G', 'BENJAMINS', 'CHEVALIERS', 'CONQUER
 CREATE TYPE "NewsletterType" AS ENUM ('POLICHINELLE', 'GAZETTE');
 
 -- CreateEnum
-CREATE TYPE "FonctionAnimateur" AS ENUM ('ANIMATEUR', 'VICE_PRESIDENT', 'CO_PRESIDENT');
+CREATE TYPE "FonctionAnimateur" AS ENUM ('ANIMATEUR', 'PRESIDENT', 'VICE_PRESIDENT', 'CO_PRESIDENT');
 
 -- CreateTable
 CREATE TABLE "users" (
@@ -86,12 +86,18 @@ CREATE TABLE "camps" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
+    "location" TEXT NOT NULL,
     "startDate" TIMESTAMP(3) NOT NULL,
     "endDate" TIMESTAMP(3) NOT NULL,
+    "startTime" TEXT NOT NULL,
+    "endTime" TEXT NOT NULL,
     "price" DOUBLE PRECISION NOT NULL,
-    "patroGroup" "PatroGroup",
+    "iban" TEXT NOT NULL,
+    "beneficiaire" TEXT NOT NULL,
+    "patroGroup" "PatroGroup" NOT NULL,
+    "sections" "Section"[],
     "isPublic" BOOLEAN NOT NULL DEFAULT true,
-    "location" TEXT,
+    "maxParticipants" INTEGER,
     "createdById" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -104,10 +110,13 @@ CREATE TABLE "camp_registrations" (
     "id" TEXT NOT NULL,
     "campId" TEXT NOT NULL,
     "childId" TEXT NOT NULL,
+    "medicalInfoUpdated" BOOLEAN NOT NULL DEFAULT false,
     "medicalInfo" JSONB,
     "remarks" TEXT,
     "isPaid" BOOLEAN NOT NULL DEFAULT false,
     "paidAmount" DOUBLE PRECISION,
+    "paymentDate" TIMESTAMP(3),
+    "registeredAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -194,6 +203,9 @@ CREATE TABLE "Settings" (
     "emailContact" TEXT NOT NULL DEFAULT 'contact@patro.be',
     "adresse" TEXT NOT NULL DEFAULT 'Rue du Patro 123, 7850 Enghien',
     "horaires" TEXT NOT NULL DEFAULT 'Dimanches 14h00 - 17h00',
+    "iban" TEXT NOT NULL DEFAULT 'BE56 7755 9576 1388',
+    "bic" TEXT NOT NULL DEFAULT 'GKCCBEBB',
+    "beneficiaire" TEXT NOT NULL DEFAULT 'PATRO ST NICOLAS GARCONS ENGHIEN',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -210,11 +222,18 @@ CREATE TABLE "Animateur" (
     "section" "PatroGroup" NOT NULL,
     "fonction" "FonctionAnimateur" NOT NULL DEFAULT 'ANIMATEUR',
     "afficherContact" BOOLEAN NOT NULL DEFAULT false,
-    "isPresident" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Animateur_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "_CampAnimators" (
+    "A" TEXT NOT NULL,
+    "B" TEXT NOT NULL,
+
+    CONSTRAINT "_CampAnimators_AB_pkey" PRIMARY KEY ("A","B")
 );
 
 -- CreateIndex
@@ -237,6 +256,9 @@ CREATE UNIQUE INDEX "Settings_section_key" ON "Settings"("section");
 
 -- CreateIndex
 CREATE INDEX "Animateur_section_idx" ON "Animateur"("section");
+
+-- CreateIndex
+CREATE INDEX "_CampAnimators_B_index" ON "_CampAnimators"("B");
 
 -- AddForeignKey
 ALTER TABLE "children" ADD CONSTRAINT "children_primaryParentId_fkey" FOREIGN KEY ("primaryParentId") REFERENCES "parents"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -270,3 +292,9 @@ ALTER TABLE "messages" ADD CONSTRAINT "messages_createdById_fkey" FOREIGN KEY ("
 
 -- AddForeignKey
 ALTER TABLE "newsletters" ADD CONSTRAINT "newsletters_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_CampAnimators" ADD CONSTRAINT "_CampAnimators_A_fkey" FOREIGN KEY ("A") REFERENCES "camps"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_CampAnimators" ADD CONSTRAINT "_CampAnimators_B_fkey" FOREIGN KEY ("B") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

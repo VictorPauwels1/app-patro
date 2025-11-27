@@ -1,32 +1,31 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
+import Link from 'next/link'
 import DashboardLayout from '@/components/layout/DashboardLayout'
-import { AlertTriangle, Utensils, Pill } from 'lucide-react'
-import { getSectionLabel } from '@/lib/utils'
-import { Section } from '@prisma/client'
+import { AlertTriangle, Utensils, Pill, ArrowLeft } from 'lucide-react'
 import DownloadRecapsButton from '@/components/DownloadRecapsButton'
 
 interface RecapData {
   allergies: any[]
   regimes: any[]
   medicaments: any[]
+  campName: string
 }
 
-export default function RecapsPreviewPage() {
+export default function CampRecapsPreviewPage() {
+  const params = useParams()
+  const campId = params.id as string
   const [activeTab, setActiveTab] = useState<'allergies' | 'regimes' | 'medicaments'>('allergies')
   const [data, setData] = useState<RecapData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
-  const searchParams = useSearchParams()
-  const section = searchParams.get('section')
-  const animateurs = searchParams.get('animateurs') === 'true'
 
   useEffect(() => {
     fetchUser()
     fetchData()
-  }, [section, animateurs])
+  }, [campId])
 
   const fetchUser = async () => {
     try {
@@ -42,13 +41,7 @@ export default function RecapsPreviewPage() {
   const fetchData = async () => {
     setIsLoading(true)
     try {
-      let url = '/api/recaps'
-      const params = []
-      if (section) params.push(`section=${section}`)
-      if (animateurs) params.push('animateurs=true')
-      if (params.length > 0) url += `?${params.join('&')}`
-      
-      const response = await fetch(url)
+      const response = await fetch(`/api/camps/${campId}/recaps`)
       const result = await response.json()
       setData(result)
     } catch (error) {
@@ -62,7 +55,7 @@ export default function RecapsPreviewPage() {
     return (
       <DashboardLayout user={user || { name: 'Chargement...' }}>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
         </div>
       </DashboardLayout>
     )
@@ -81,6 +74,15 @@ export default function RecapsPreviewPage() {
   return (
     <DashboardLayout user={user}>
       <div className="space-y-6">
+        {/* Bouton retour */}
+        <Link
+          href={`/dashboard/camps/${campId}`}
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Retour au camp
+        </Link>
+
         {/* En-tête */}
         <div className="flex justify-between items-start">
           <div>
@@ -88,17 +90,12 @@ export default function RecapsPreviewPage() {
               Fiches Récapitulatives
             </h1>
             <p className="text-gray-600 mt-1">
-              {animateurs 
-                ? 'Animateurs' 
-                : section 
-                  ? `Section: ${getSectionLabel(section as Section)}` 
-                  : 'Toutes les sections'}
+              {data.campName}
             </p>
           </div>
           <DownloadRecapsButton 
-            type="enfants"
-            section={section || undefined}
-            animateurs={animateurs}
+            type="camp"
+            campId={campId}
             label="Télécharger PDF"
           />
         </div>
@@ -271,6 +268,12 @@ export default function RecapsPreviewPage() {
               </div>
             )}
           </div>
+        </div>
+
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-800">
+            💡 <strong>Astuce :</strong> Vous pouvez imprimer ces fiches directement depuis votre navigateur (Ctrl+P ou Cmd+P)
+          </p>
         </div>
       </div>
     </DashboardLayout>

@@ -27,10 +27,7 @@ export default async function DashboardPage() {
     prisma.camp.count({
       where: {
         endDate: { gte: new Date() },
-        OR: [
-          { patroGroup: { in: visibleGroups } },
-          { patroGroup: null }
-        ]
+        patroGroup: { in: visibleGroups }
       }
     }),
     prisma.event.count({

@@ -19,18 +19,71 @@ export async function GET(request: NextRequest) {
     const session = await requireAuth();
     const searchParams = request.nextUrl.searchParams;
 
-    const type = searchParams.get("type"); // 'single' | 'all' | 'section' | 'animateurs'
+    const type = searchParams.get("type"); // 'single' | 'all' | 'section' | 'animateurs' | 'camp'
     const mode = searchParams.get("mode") || "combined"; // 'combined' | 'individual'
     const childId = searchParams.get("childId");
     const section = searchParams.get("section") as Section | null;
+    const campId = searchParams.get("campId");
 
     const visibleGroups = getVisibleGroups(session.user);
     const currentYear = getCurrentSchoolYear();
 
     // Récupérer les données selon le type
     let registrations: any[] = [];
+    let campName = "";
 
-    if (type === "single" && childId) {
+    if (type === "camp" && campId) {
+      // Fiches des inscrits à un camp
+      const camp = await prisma.camp.findUnique({
+        where: { id: campId },
+        include: {
+          registrations: {
+            include: {
+              child: {
+                include: {
+                  primaryParent: true,
+                  secondaryParent: true,
+                  registrations: {
+                    where: { year: currentYear },
+                  },
+                },
+              },
+            },
+            orderBy: {
+              child: {
+                lastName: "asc",
+              },
+            },
+          },
+        },
+      });
+
+      if (!camp) {
+        return NextResponse.json({ error: "Camp non trouvé" }, { status: 404 });
+      }
+
+      if (!canViewGroup(session.user, camp.patroGroup)) {
+        return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+      }
+
+      campName = camp.name;
+
+      // Convertir les CampRegistration en format compatible avec les fiches médicales
+      registrations = camp.registrations.map((campReg) => ({
+        child: campReg.child,
+        medicalInfo:
+          campReg.medicalInfoUpdated && campReg.medicalInfo
+            ? campReg.medicalInfo
+            : campReg.child.registrations[0]?.medicalInfo,
+        weight: campReg.child.registrations[0]?.weight,
+        photoConsent: campReg.child.registrations[0]?.photoConsent,
+        photoUsage: campReg.child.registrations[0]?.photoUsage,
+        photoArchive: campReg.child.registrations[0]?.photoArchive,
+        emergencyMedicalConsent:
+          campReg.child.registrations[0]?.emergencyMedicalConsent,
+        remarks: campReg.remarks || campReg.child.registrations[0]?.remarks,
+      }));
+    } else if (type === "single" && childId) {
       // Une seule fiche
       const registration = await prisma.registration.findFirst({
         where: {
@@ -196,7 +249,9 @@ export async function GET(request: NextRequest) {
 
       // Nom du fichier ZIP
       let zipFilename = "fiches.zip";
-      if (type === "animateurs") {
+      if (type === "camp") {
+        zipFilename = `fiches-camp-${campName.replace(/[^a-z0-9]/gi, "-")}.zip`;
+      } else if (type === "animateurs") {
         zipFilename = `fiches-animateurs-${currentYear}.zip`;
       } else if (type === "section") {
         zipFilename = `fiches-${section}-${currentYear}.zip`;
@@ -235,6 +290,8 @@ export async function GET(request: NextRequest) {
     let filename = "fiche-medicale.pdf";
     if (type === "single" && pdfDataArray.length === 1) {
       filename = `fiche-${pdfDataArray[0].child.lastName}-${pdfDataArray[0].child.firstName}.pdf`;
+    } else if (type === "camp") {
+      filename = `fiches-camp-${campName.replace(/[^a-z0-9]/gi, "-")}.pdf`;
     } else if (type === "animateurs") {
       filename = `fiches-animateurs-${currentYear}.pdf`;
     } else if (type === "section") {

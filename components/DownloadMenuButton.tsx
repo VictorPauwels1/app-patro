@@ -4,12 +4,13 @@ import { useState, useRef, useEffect } from 'react'
 import { Download, ChevronDown } from 'lucide-react'
 
 interface DownloadMenuButtonProps {
-  type: 'all' | 'section' | 'animateurs'
+  type: 'all' | 'section' | 'animateurs' | 'camp'
   section?: string
+  campId?: string
   label: string
 }
 
-export default function DownloadMenuButton({ type, section, label }: DownloadMenuButtonProps) {
+export default function DownloadMenuButton({ type, section, campId, label }: DownloadMenuButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -34,6 +35,9 @@ export default function DownloadMenuButton({ type, section, label }: DownloadMen
       if (section) {
         url += `&section=${section}`
       }
+      if (campId) {
+        url += `&campId=${campId}`
+      }
 
       const response = await fetch(url)
       
@@ -48,7 +52,7 @@ export default function DownloadMenuButton({ type, section, label }: DownloadMen
         const downloadUrl = window.URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = downloadUrl
-        a.download = `fiches-${type === 'section' ? section : type}.pdf`
+        a.download = `fiches-${type === 'camp' ? `camp-${campId}` : type === 'section' ? section : type}.pdf`
         document.body.appendChild(a)
         a.click()
         window.URL.revokeObjectURL(downloadUrl)
@@ -59,7 +63,7 @@ export default function DownloadMenuButton({ type, section, label }: DownloadMen
         const downloadUrl = window.URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = downloadUrl
-        a.download = `fiches-${type === 'section' ? section : type}.zip`
+        a.download = `fiches-${type === 'camp' ? `camp-${campId}` : type === 'section' ? section : type}.zip`
         document.body.appendChild(a)
         a.click()
         window.URL.revokeObjectURL(downloadUrl)

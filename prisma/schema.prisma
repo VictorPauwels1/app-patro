@@ -48,6 +48,13 @@ enum NewsletterType {
   GAZETTE       // Journal filles
 }
 
+enum FonctionAnimateur {
+  ANIMATEUR
+  PRESIDENT
+  VICE_PRESIDENT
+  CO_PRESIDENT
+}
+
 // ============================================
 // AUTHENTIFICATION
 // ============================================
@@ -68,7 +75,8 @@ model User {
   albumsCreated Album[]
   messagesCreated Message[]
   newslettersCreated Newsletter[]
-  campsCreated  Camp[]
+  campsCreated  Camp[]        @relation("CampCreator")
+  campsAsAnimator Camp[]      @relation("CampAnimators")
 
   @@map("users")
 }
@@ -179,56 +187,63 @@ model Registration {
 // ============================================
 
 model Camp {
-  id            String      @id @default(cuid())
-  name          String
-  description   String?
-  startDate     DateTime
-  endDate       DateTime
-  price         Float
-  patroGroup    PatroGroup? // null = commun, sinon GARCONS ou FILLES
-  isPublic      Boolean     @default(true)
+  id                String              @id @default(cuid())
+  name              String
+  description       String?
+  location          String
+  startDate         DateTime
+  endDate           DateTime
+  startTime         String              // Format HH:MM
+  endTime           String              // Format HH:MM
+  price             Float
+  iban              String              // IBAN pour le paiement
+  beneficiaire      String              // Nom du bénéficiaire
+  patroGroup        PatroGroup          // GARCONS ou FILLES (toujours séparé)
   
-  // Lieu
-  location      String?
+  // Sections concernées (peut être multiple pour grands camps)
+  sections          Section[]
   
-  // Créateur
-  createdById   String
-  createdBy     User        @relation(fields: [createdById], references: [id])
+  // Animateurs présents au camp (relation many-to-many)
+  animators         User[]              @relation("CampAnimators")
   
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  isPublic          Boolean             @default(true)
+  maxParticipants   Int?                // Optionnel : limite de participants
   
-  // Relations
-  registrations CampRegistration[]
+  createdById       String
+  createdBy         User                @relation("CampCreator", fields: [createdById], references: [id])
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  registrations     CampRegistration[]
   
   @@map("camps")
 }
 
 model CampRegistration {
-  id            String   @id @default(cuid())
+  id                String   @id @default(cuid())
   
-  // Camp
-  campId        String
-  camp          Camp     @relation(fields: [campId], references: [id], onDelete: Cascade)
+  campId            String
+  camp              Camp     @relation(fields: [campId], references: [id], onDelete: Cascade)
   
-  // Enfant
-  childId       String
-  child         Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  childId           String
+  child             Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
   
-  // Fiche médicale spécifique au camp (peut être différente de l'inscription annuelle)
-  medicalInfo   Json?
+  // Si les infos médicales ont été mises à jour lors de l'inscription
+  medicalInfoUpdated Boolean  @default(false)
+  // Nouvelles infos médicales si mises à jour (sinon on utilise celles de Registration)
+  medicalInfo       Json?
+  remarks           String?
   
-  // Remarques spécifiques au camp
-  remarks       String?
+  isPaid            Boolean  @default(false)
+  paidAmount        Float?
+  paymentDate       DateTime?
   
-  // Paiement
-  isPaid        Boolean  @default(false)
-  paidAmount    Float?
+  registeredAt      DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
   
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  @@unique([campId, childId]) // Un enfant ne peut s'inscrire qu'une fois par camp
+  @@unique([campId, childId])
   @@map("camp_registrations")
 }
 
@@ -349,30 +364,33 @@ model Newsletter {
 // Paramètres généraux du site
 // ============================================
 
-  model Settings {
-    id                  String      @id @default(cuid())
-    section             PatroGroup  // GARCONS ou FILLES
-    
-    // Prix
-    prixInscription     Float       @default(45)
-    
-    // Infos de contact
-    emailContact        String      @default("contact@patro.be")
-    adresse             String      @default("Rue du Patro 123, 7850 Enghien")
-    horaires            String      @default("Dimanches 14h00 - 17h00")
+model Settings {
+  id                  String      @id @default(cuid())
+  section             PatroGroup  // GARCONS ou FILLES
+  
+  // Prix
+  prixInscription     Float       @default(45)
+  
+  // Infos de contact
+  emailContact        String      @default("contact@patro.be")
+  adresse             String      @default("Rue du Patro 123, 7850 Enghien")
+  horaires            String      @default("Dimanches 14h00 - 17h00")
 
-    // Coordonnées bancaires
-    iban                String      @default("BE56 7755 9576 1388")
-    bic                 String      @default("GKCCBEBB")
-    beneficiaire        String      @default("PATRO ST NICOLAS GARCONS ENGHIEN")
-    
-    createdAt           DateTime    @default(now())
-    updatedAt           DateTime    @updatedAt
-    
-    @@unique([section])
-  }
+  // Coordonnées bancaires
+  iban                String      @default("BE56 7755 9576 1388")
+  bic                 String      @default("GKCCBEBB")
+  beneficiaire        String      @default("PATRO ST NICOLAS GARCONS ENGHIEN")
+  
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  
+  @@unique([section])
+}
 
+// ============================================
 // Fiches des animateurs
+// ============================================
+
 model Animateur {
   id                  String      @id @default(cuid())
   nom                 String
@@ -387,11 +405,4 @@ model Animateur {
   updatedAt           DateTime    @updatedAt
   
   @@index([section])
-}
-
-enum FonctionAnimateur {
-  ANIMATEUR
-  PRESIDENT
-  VICE_PRESIDENT
-  CO_PRESIDENT
 }
